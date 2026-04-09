@@ -14,7 +14,7 @@ export async function middleware(request: NextRequest) {
     {
       cookies: {
         getAll() {
-          return request.cookies.getSetCookie()
+          return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) =>
@@ -34,6 +34,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
+  // Protect admin routes
+  if (request.nextUrl.pathname.startsWith('/admin') && !user) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
   // Redirect auth pages if already logged in
   if ((request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup') && user) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
@@ -43,5 +48,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/login', '/signup'],
+  matcher: ['/dashboard/:path*', '/admin/:path*', '/login', '/signup'],
 }
+
