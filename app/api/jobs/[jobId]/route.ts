@@ -7,20 +7,14 @@ export async function GET(
   { params }: { params: { jobId: string } }
 ) {
   try {
+    const cookieStore = await cookies()
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
-          getAll: async () => {
-            const cookieStore = await cookies()
-            return cookieStore.getSetCookie()
-          },
-          setAll: async (cookiesToSet) => {
-            const cookieStore = await cookies()
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options)
-            })
+          getAll() {
+            return cookieStore.getAll()
           },
         },
       }
@@ -53,15 +47,25 @@ export async function GET(
       .eq('job_id', params.jobId)
       .order('variation_number', { ascending: true })
 
+    // Calculate progress percentage
+    const stageProgress = {
+      queued: 0,
+      running: (job.current_stage + 1) * 11, // 0-99%
+      completed: 100,
+      failed: job.current_stage * 11,
+    }
+
     return NextResponse.json({
       job,
       designs: designs || [],
       status: job.status,
       currentStage: job.current_stage,
+      progress: stageProgress[job.status as keyof typeof stageProgress] || 0,
       stageResults: job.stage_results,
+      errorMessage: job.error_message,
     })
   } catch (error) {
-    console.error('Job fetch error:', error)
+    console.error('[v0] Job fetch error:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to fetch job' },
       { status: 500 }
