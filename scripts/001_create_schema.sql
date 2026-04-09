@@ -37,6 +37,24 @@ CREATE TABLE IF NOT EXISTS jobs (
   error_message TEXT
 );
 
+-- Create products table (furniture database) - must be created before design_products
+CREATE TABLE IF NOT EXISTS products (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  category TEXT NOT NULL, -- sofa, chair, table, lamp, cabinet, artwork, rug, plant, cushion
+  style TEXT NOT NULL, -- modern, traditional, eclectic, minimalist, maximalist
+  price_min INT NOT NULL, -- in cents
+  price_max INT NOT NULL,
+  dimensions_width FLOAT NOT NULL, -- inches
+  dimensions_depth FLOAT NOT NULL,
+  dimensions_height FLOAT NOT NULL,
+  image_url TEXT NOT NULL,
+  color TEXT NOT NULL,
+  material TEXT NOT NULL,
+  description TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create designs table (final results)
 CREATE TABLE IF NOT EXISTS designs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -61,24 +79,6 @@ CREATE TABLE IF NOT EXISTS design_products (
   position_y FLOAT NOT NULL,
   scale_factor FLOAT NOT NULL, -- depth-adjusted scale
   rotation_angle FLOAT DEFAULT 0
-);
-
--- Create products table (furniture database)
-CREATE TABLE IF NOT EXISTS products (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  category TEXT NOT NULL, -- sofa, chair, table, lamp, cabinet, artwork, rug, plant, cushion
-  style TEXT NOT NULL, -- modern, traditional, eclectic, minimalist, maximalist
-  price_min INT NOT NULL, -- in cents
-  price_max INT NOT NULL,
-  dimensions_width FLOAT NOT NULL, -- inches
-  dimensions_depth FLOAT NOT NULL,
-  dimensions_height FLOAT NOT NULL,
-  image_url TEXT NOT NULL,
-  color TEXT NOT NULL,
-  material TEXT NOT NULL,
-  description TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create indexes for performance
