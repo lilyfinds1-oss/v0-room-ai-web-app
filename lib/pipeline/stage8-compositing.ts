@@ -1,15 +1,175 @@
-import { createCanvas } from 'canvas'
-import fetch from 'node-fetch'
+import { createCanvas, Canvas } from 'canvas'
 import { put } from '@vercel/blob'
-import { Placement, NormalizedMetadata } from './pipeline-schemas'
 
-interface CompositeInput {
-  roomImageUrl: string
-  placements: Placement[]
-  metadata: NormalizedMetadata
-  sessionId: string
-  productImages: Map<string, Buffer>
+export interface CompositeLayer {
+  productId: string
+  imageUrl: string
+  x: number
+  y: number
+  width: number
+  height: number
+  depth: 'far' | 'mid' | 'near'
 }
+
+export interface CompositeResult {
+  composite_url: string
+  width: number
+  height: number
+}
+
+// Depth scaling for painter's algorithm
+const DEPTH_SCALE = {
+  far: { scale: 0.48, shadowBlur: 12, shadowOpacity: 0.45 },
+  mid: { scale: 0.7, shadowBlur: 18, shadowOpacity: 0.6 },
+  near: { scale: 1.0, shadowBlur: 24, shadowOpacity: 0.8 },
+}
+
+export async function compositeProducts(
+  roomImageUrl: string,
+  layers: CompositeLayer[],
+  roomWidth: number,
+  roomHeight: number,
+  sessionId: string
+): Promise<CompositeResult> {
+  try {
+    console.log('[v0] Stage 8: Compositing', layers.length, 'products onto room image')
+
+    // Fetch room image
+    const roomResponse = await fetch(roomImageUrl)
+    if (!roomResponse.ok) throw new Error('Failed to fetch room image')
+    const roomBuffer = Buffer.from(await roomResponse.arrayBuffer())
+
+    // Create canvas
+    const canvas = createCanvas(roomWidth, roomHeight)
+    const ctx = canvas.getContext('2d')
+
+    // Draw room background
+    const { Image } = await import('canvas')
+    const roomImage = new Image()
+    roomImage.src = roomBuffer
+    ctx.drawImage(roomImage, 0, 0, roomWidth, roomHeight)
+
+    // Sort layers by depth (painter's algorithm: far → mid → near)
+    const sortedLayers = [...layers].sort((a, b) => {
+      const depthOrder = { far: 0, mid: 1, near: 2 }
+      return depthOrder[a.depth] - depthOrder[b.depth]
+    })
+
+    // PASS 1: Draw all shadows first (painter's algorithm)
+    for (const layer of sortedLayers) {
+      await drawLayerShadow(ctx, layer, roomWidth, roomHeight)
+    }
+
+    // PASS 2: Draw all products (painter's algorithm)
+    for (const layer of sortedLayers) {
+      await drawLayerProduct(ctx, layer, roomWidth, roomHeight)
+    }
+
+    // Convert canvas to JPEG buffer
+    const compositedBuffer = canvas.toBuffer('image/jpeg', { quality: 90 })
+
+    // Upload to Vercel Blob
+    const key = `composites/${sessionId}-composite.jpg`
+    const blob = await put(key, compositedBuffer, {
+      contentType: 'image/jpeg',
+      access: 'public',
+    })
+
+    console.log('[v0] Stage 8 complete: Composite created')
+
+    return {
+      composite_url: blob.url,
+      width: roomWidth,
+      height: roomHeight,
+    }
+  } catch (error) {
+    console.error('[v0] Stage 8 error:', error)
+    throw new Error(`Compositing failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
+}
+
+async function drawLayerShadow(
+  ctx: any,
+  layer: CompositeLayer,
+  roomWidth: number,
+  roomHeight: number
+) {
+  try {
+    const depthConfig = DEPTH_SCALE[layer.depth]
+
+    // Calculate scaled dimensions
+    const scaledWidth = layer.width * depthConfig.scale
+    const scaledHeight = layer.height * depthConfig.scale
+
+    // Draw elliptical shadow (wider horizontally, narrower vertically)
+    ctx.save()
+    ctx.fillStyle = `rgba(0, 0, 0, ${depthConfig.shadowOpacity})`
+    ctx.globalAlpha = depthConfig.shadowOpacity
+
+    // Shadow position: slightly below and offset from product
+    const shadowX = layer.x
+    const shadowY = layer.y + scaledHeight * 0.08
+
+    ctx.beginPath()
+    ctx.ellipse(shadowX, shadowY, scaledWidth * 0.55, scaledHeight * 0.12, 0, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Apply blur effect
+    ctx.filter = `blur(${depthConfig.shadowBlur}px)`
+    ctx.fillStyle = `rgba(0, 0, 0, ${depthConfig.shadowOpacity * 0.5})`
+    ctx.fill()
+
+    ctx.restore()
+  } catch (error) {
+    console.warn('[v0] Failed to draw shadow for product:', layer.productId, error)
+  }
+}
+
+async function drawLayerProduct(
+  ctx: any,
+  layer: CompositeLayer,
+  roomWidth: number,
+  roomHeight: number
+) {
+  try {
+    const depthConfig = DEPTH_SCALE[layer.depth]
+
+    // Fetch product image
+    const response = await fetch(layer.imageUrl)
+    if (!response.ok) throw new Error('Failed to fetch product image')
+    const buffer = Buffer.from(await response.arrayBuffer())
+
+    const { Image } = await import('canvas')
+    const productImage = new Image()
+    productImage.src = buffer
+
+    // Calculate scaled dimensions
+    const scaledWidth = layer.width * depthConfig.scale
+    const scaledHeight = layer.height * depthConfig.scale
+
+    // Calculate rotation: items on left rotate left, items on right rotate right
+    // angle = ((cx / room_width - 0.5) * 10)
+    const normalizedX = layer.x / roomWidth
+    const rotationAngle = (normalizedX - 0.5) * 10 // ±10 degrees
+
+    // Draw product with rotation
+    ctx.save()
+    ctx.translate(layer.x, layer.y)
+    ctx.rotate((rotationAngle * Math.PI) / 180)
+    ctx.globalAlpha = 0.95
+    ctx.globalCompositeOperation = 'source-over'
+
+    // Draw centered
+    ctx.drawImage(productImage, -scaledWidth / 2, -scaledHeight / 2, scaledWidth, scaledHeight)
+
+    ctx.restore()
+
+    console.log('[v0] Composited product:', layer.productId, 'depth:', layer.depth, 'rotation:', rotationAngle.toFixed(1) + '°')
+  } catch (error) {
+    console.warn('[v0] Failed to composite product:', layer.productId, error)
+  }
+}
+
 
 async function fetchImageAsBuffer(url: string): Promise<Buffer> {
   const response = await fetch(url)

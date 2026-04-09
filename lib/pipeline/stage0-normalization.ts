@@ -1,6 +1,15 @@
 import sharp from 'sharp'
 import { put } from '@vercel/blob'
-import { NormalizedMetadata } from './pipeline-schemas'
+
+export interface NormalizedMetadata {
+  original_width: number
+  original_height: number
+  processed_width: number
+  processed_height: number
+  scale_x: number
+  scale_y: number
+  rotated_degrees: number
+}
 
 export async function normalizeImage(
   imageUrl: string,
@@ -13,31 +22,31 @@ export async function normalizeImage(
     const response = await fetch(imageUrl)
     if (!response.ok) throw new Error('Failed to fetch image')
     const buffer = await response.arrayBuffer()
+    const bufferNode = Buffer.from(buffer)
 
     // Get original dimensions
-    const image = sharp(buffer)
-    const metadata = await image.metadata()
-    const originalWidth = metadata.width || 1024
-    const originalHeight = metadata.height || 1024
+    const originalMetadata = await sharp(bufferNode).metadata()
+    const originalWidth = originalMetadata.width || 1024
+    const originalHeight = originalMetadata.height || 1024
 
-    // Normalize: max 1024x1024, maintain aspect ratio, no enlargement
-    const normalized = sharp(buffer)
-      .rotate() // Auto-rotate based on EXIF
+    // Normalize: max 1024x1024, maintain aspect ratio, auto-rotate via EXIF
+    const normalized = sharp(bufferNode)
+      .rotate() // Auto-rotate based on EXIF orientation
       .resize(1024, 1024, {
         fit: 'inside',
         withoutEnlargement: true,
       })
-      .jpeg({ quality: 85 })
 
-    const normalizedBuffer = await normalized.toBuffer()
-    const normalizedMetadata = await normalized.metadata()
+    // Output as JPEG
+    const jpegBuffer = await normalized.jpeg({ quality: 90, progressive: true }).toBuffer()
+    const processedMetadata = await normalized.metadata()
 
-    const processedWidth = normalizedMetadata.width || 1024
-    const processedHeight = normalizedMetadata.height || 1024
+    const processedWidth = processedMetadata.width || 1024
+    const processedHeight = processedMetadata.height || 1024
 
     // Upload to Vercel Blob
     const key = `room-images/${sessionId}-normalized.jpg`
-    const blob = await put(key, normalizedBuffer, {
+    const blob = await put(key, jpegBuffer, {
       contentType: 'image/jpeg',
       access: 'public',
     })
@@ -53,6 +62,7 @@ export async function normalizeImage(
         processed_height: processedHeight,
         scale_x: processedWidth / originalWidth,
         scale_y: processedHeight / originalHeight,
+        rotated_degrees: 0, // Sharp handles rotation internally
       },
     }
   } catch (error) {
@@ -60,3 +70,4 @@ export async function normalizeImage(
     throw new Error(`Image normalization failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
+
