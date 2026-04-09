@@ -44,91 +44,121 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
-        <Card className="w-full max-w-md p-8">
-          <div className="text-center space-y-4">
-            <div className="text-4xl">✓</div>
-            <h1 className="text-2xl font-bold text-foreground">Check your email</h1>
-            <p className="text-sm text-muted-foreground">
-              Please check your email to confirm your account before signing in.
-            </p>
-          </div>
-        </Card>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-slate-950 to-background overflow-hidden relative">
+        {/* Animated gradient orbs */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse opacity-50" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse opacity-50" />
+        
+        <div className="relative z-10">
+          <Card className="w-full max-w-md p-8 border border-border/50 bg-card/40 backdrop-blur-xl glow-pulse">
+            <div className="text-center space-y-4 slide-up">
+              <div className="text-5xl font-bold text-primary">✓</div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+                Check your email
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Please check your email to confirm your account before signing in.
+              </p>
+            </div>
+          </Card>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
-      <Card className="w-full max-w-md p-8">
-        <div className="space-y-6">
-          <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold text-foreground">RoomAI</h1>
-            <p className="text-sm text-muted-foreground">Create your account</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2">
-                Email
-              </label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-              />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-slate-950 to-background overflow-hidden relative">
+      {/* Animated gradient orbs */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse opacity-50" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse opacity-50" />
+      
+      <div className="relative z-10">
+        <Card className="w-full max-w-md p-8 border border-border/50 bg-card/40 backdrop-blur-xl glow-pulse">
+          <div className="space-y-6">
+            <div className="text-center space-y-2 slide-up">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+                RoomAI
+              </h1>
+              <p className="text-sm text-muted-foreground">Create your account</p>
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-2">
-                Password
-              </label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium mb-2">
-                Confirm Password
-              </label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-              />
-            </div>
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
-                {error}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="email" className="block text-sm font-medium text-foreground/90">
+                  Email
+                </label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
+                  className="bg-input/50 border-border/40 focus:border-primary/60 focus:glow-pulse transition-all"
+                />
               </div>
-            )}
 
-            <Button type="submit" disabled={loading} className="w-full">
-              {loading ? 'Creating account...' : 'Sign up'}
-            </Button>
-          </form>
+              <div className="space-y-2">
+                <label htmlFor="password" className="block text-sm font-medium text-foreground/90">
+                  Password
+                </label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="bg-input/50 border-border/40 focus:border-primary/60 focus:glow-pulse transition-all"
+                />
+              </div>
 
-          <div className="text-center text-sm">
-            <span className="text-muted-foreground">Already have an account? </span>
-            <Link href="/login" className="text-primary hover:underline font-medium">
-              Sign in
-            </Link>
+              <div className="space-y-2">
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground/90">
+                  Confirm Password
+                </label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="bg-input/50 border-border/40 focus:border-primary/60 focus:glow-pulse transition-all"
+                />
+              </div>
+
+              {error && (
+                <div className="bg-destructive/10 border border-destructive/30 text-destructive px-4 py-3 rounded-lg text-sm slide-up">
+                  {error}
+                </div>
+              )}
+
+              <Button 
+                type="submit" 
+                disabled={loading} 
+                className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white font-semibold py-2 rounded-lg transition-all duration-300 glow-pulse disabled:opacity-50"
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Creating account...
+                  </span>
+                ) : (
+                  'Sign up'
+                )}
+              </Button>
+            </form>
+
+            <div className="text-center text-sm">
+              <span className="text-muted-foreground">Already have an account? </span>
+              <Link href="/login" className="text-primary hover:text-accent font-semibold transition-colors">
+                Sign in
+              </Link>
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      </div>
     </div>
   )
 }
