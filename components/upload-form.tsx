@@ -77,8 +77,8 @@ export default function UploadForm() {
       }
 
       const data = await response.json()
-      // Redirect to job results page
-      router.push(`/dashboard/results/${data.jobId}`)
+      // Redirect to dashboard to view job progress
+      router.push(`/dashboard?jobId=${data.jobId}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed')
       setLoading(false)
