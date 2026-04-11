@@ -25,6 +25,7 @@ export function ScrollTrigger({
         if (entry.isIntersecting) {
           setTimeout(() => {
             entry.target.classList.add(`animate-${animation}`)
+            entry.target.style.opacity = '1'
             observer.unobserve(entry.target)
           }, delay)
         }
@@ -33,6 +34,8 @@ export function ScrollTrigger({
     )
 
     if (ref.current) {
+      // Set initial state: invisible but will animate in
+      ref.current.style.opacity = '0'
       observer.observe(ref.current)
     }
 
@@ -40,8 +43,9 @@ export function ScrollTrigger({
   }, [animation, delay, threshold])
 
   return (
-    <div ref={ref} className={`opacity-0 ${className}`}>
+    <div ref={ref} className={className}>
       {children}
     </div>
   )
 }
+
