@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import Image from 'next/image'
+import { Wand2 } from 'lucide-react'
 
 const ROOM_TYPES = ['Bedroom', 'Living Room', 'Kitchen', 'Office']
 const BUDGET_RANGES = ['$0-5k', '$5-10k', '$10k+']
@@ -86,33 +87,36 @@ export default function UploadForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid md:grid-cols-2 gap-8">
+    <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="grid lg:grid-cols-3 gap-8">
         {/* Left: File Upload */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-slate-900">Upload Your Room</h2>
-          
+        <div className="lg:col-span-2 space-y-4">
           <div
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}
             onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center cursor-pointer hover:border-slate-400 transition"
+            className="border-2 border-dashed border-white/20 hover:border-primary/50 rounded-xl p-8 text-center cursor-pointer transition-all duration-300 bg-surface/30 hover:bg-surface/50"
           >
             {preview ? (
-              <div className="relative w-full aspect-square">
+              <div className="relative w-full aspect-square rounded-lg overflow-hidden">
                 <Image
                   src={preview}
                   alt="Preview"
                   fill
-                  className="object-contain"
+                  className="object-cover"
                 />
               </div>
             ) : (
-              <div className="space-y-2">
-                <div className="text-4xl">📸</div>
-                <p className="text-sm text-slate-600">
-                  Drag and drop your room image here, or click to select
-                </p>
+              <div className="space-y-4">
+                <div className="flex justify-center">
+                  <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                    <span className="text-3xl">📸</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-text-primary font-semibold">Drop your room photo here</p>
+                  <p className="text-sm text-text-secondary">or click to browse</p>
+                </div>
               </div>
             )}
           </div>
@@ -126,7 +130,7 @@ export default function UploadForm() {
           />
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
+            <div className="bg-error/10 border border-error/30 text-error px-4 py-3 rounded-lg text-sm animate-slide-up">
               {error}
             </div>
           )}
@@ -134,17 +138,17 @@ export default function UploadForm() {
 
         {/* Right: Options */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-slate-900">Design Preferences</h3>
+          <h3 className="text-lg font-semibold text-text-primary">Preferences</h3>
 
-          <Card className="p-4 space-y-4">
+          <Card className="p-6 space-y-4 border-white/10">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">
                 Room Type
               </label>
               <select
                 value={roomType}
                 onChange={(e) => setRoomType(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                className="w-full px-4 py-2 rounded-lg bg-background-dark border border-white/10 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               >
                 {ROOM_TYPES.map((type) => (
                   <option key={type} value={type}>
@@ -155,13 +159,13 @@ export default function UploadForm() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">
                 Budget Range
               </label>
               <select
                 value={budgetRange}
                 onChange={(e) => setBudgetRange(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                className="w-full px-4 py-2 rounded-lg bg-background-dark border border-white/10 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               >
                 {BUDGET_RANGES.map((range) => (
                   <option key={range} value={range}>
@@ -172,13 +176,13 @@ export default function UploadForm() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">
                 Design Style
               </label>
               <select
                 value={style}
                 onChange={(e) => setStyle(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                className="w-full px-4 py-2 rounded-lg bg-background-dark border border-white/10 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               >
                 {STYLES.map((s) => (
                   <option key={s} value={s}>
@@ -192,9 +196,12 @@ export default function UploadForm() {
           <Button
             type="submit"
             disabled={!file || loading}
-            className="w-full h-11"
+            variant="primary"
             size="lg"
+            className="w-full"
+            isLoading={loading}
           >
+            <Wand2 className="w-5 h-5" />
             {loading ? 'Processing...' : 'Generate Design'}
           </Button>
         </div>
