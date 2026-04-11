@@ -44,19 +44,19 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-slate-950 to-background overflow-hidden relative">
+      <div className="min-h-screen flex items-center justify-center bg-background-dark overflow-hidden relative">
         {/* Animated gradient orbs */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse opacity-50" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse opacity-50" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-primary to-transparent rounded-full mix-blend-multiply filter blur-3xl animate-pulse opacity-40" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-br from-secondary to-transparent rounded-full mix-blend-multiply filter blur-3xl animate-pulse opacity-40" />
         
         <div className="relative z-10">
-          <Card className="w-full max-w-md p-8 border border-border/50 bg-card/40 backdrop-blur-xl glow-pulse">
-            <div className="text-center space-y-4 slide-up">
+          <Card className="w-full max-w-md p-8 border border-white/10 bg-surface/50 backdrop-blur-xl glow-primary">
+            <div className="text-center space-y-4 animate-slide-up">
               <div className="text-5xl font-bold text-primary">✓</div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold gradient-text">
                 Check your email
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-text-secondary">
                 Please check your email to confirm your account before signing in.
               </p>
             </div>
@@ -67,24 +67,24 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-slate-950 to-background overflow-hidden relative">
+    <div className="min-h-screen flex items-center justify-center bg-background-dark overflow-hidden relative">
       {/* Animated gradient orbs */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse opacity-50" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse opacity-50" />
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-primary to-transparent rounded-full mix-blend-multiply filter blur-3xl animate-pulse opacity-40" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-br from-secondary to-transparent rounded-full mix-blend-multiply filter blur-3xl animate-pulse opacity-40" />
       
       <div className="relative z-10">
-        <Card className="w-full max-w-md p-8 border border-border/50 bg-card/40 backdrop-blur-xl glow-pulse">
+        <Card className="w-full max-w-md p-8 border border-white/10 bg-surface/50 backdrop-blur-xl glow-primary">
           <div className="space-y-6">
-            <div className="text-center space-y-2 slide-up">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+            <div className="text-center space-y-2 animate-slide-up">
+              <h1 className="text-4xl font-bold gradient-text">
                 RoomAI
               </h1>
-              <p className="text-sm text-muted-foreground">Create your account</p>
+              <p className="text-sm text-text-secondary">Create your account</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <label htmlFor="email" className="block text-sm font-medium text-foreground/90">
+                <label htmlFor="email" className="block text-sm font-medium text-text-primary">
                   Email
                 </label>
                 <Input
@@ -94,12 +94,11 @@ export default function SignupPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   required
-                  className="bg-input/50 border-border/40 focus:border-primary/60 focus:glow-pulse transition-all"
                 />
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="password" className="block text-sm font-medium text-foreground/90">
+                <label htmlFor="password" className="block text-sm font-medium text-text-primary">
                   Password
                 </label>
                 <Input
@@ -109,12 +108,11 @@ export default function SignupPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="bg-input/50 border-border/40 focus:border-primary/60 focus:glow-pulse transition-all"
                 />
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground/90">
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-text-primary">
                   Confirm Password
                 </label>
                 <Input
@@ -124,12 +122,11 @@ export default function SignupPage() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="bg-input/50 border-border/40 focus:border-primary/60 focus:glow-pulse transition-all"
                 />
               </div>
 
               {error && (
-                <div className="bg-destructive/10 border border-destructive/30 text-destructive px-4 py-3 rounded-lg text-sm slide-up">
+                <div className="bg-error/10 border border-error/30 text-error px-4 py-3 rounded-lg text-sm animate-slide-up">
                   {error}
                 </div>
               )}
@@ -137,22 +134,17 @@ export default function SignupPage() {
               <Button 
                 type="submit" 
                 disabled={loading} 
-                className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white font-semibold py-2 rounded-lg transition-all duration-300 glow-pulse disabled:opacity-50"
+                variant="primary"
+                size="md"
+                className="w-full"
               >
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Creating account...
-                  </span>
-                ) : (
-                  'Sign up'
-                )}
+                {loading ? 'Creating account...' : 'Sign up'}
               </Button>
             </form>
 
             <div className="text-center text-sm">
-              <span className="text-muted-foreground">Already have an account? </span>
-              <Link href="/login" className="text-primary hover:text-accent font-semibold transition-colors">
+              <span className="text-text-secondary">Already have an account? </span>
+              <Link href="/login" className="text-primary hover:text-secondary font-semibold transition-colors">
                 Sign in
               </Link>
             </div>
