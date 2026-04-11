@@ -39,7 +39,7 @@
   }
 
   * {
-    @apply border-border;
+    @apply border-white/10;
   }
 
   html {
