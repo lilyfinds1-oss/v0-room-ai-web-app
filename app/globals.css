@@ -1,39 +1,59 @@
 @import 'tailwindcss';
 
+@theme inline {
+  --font-sans: system-ui, -apple-system, sans-serif;
+  
+  /* Colors */
+  --color-primary: #7c3aed;
+  --color-primary-light: #a78bfa;
+  --color-primary-dark: #5b21b6;
+  
+  --color-secondary: #0ea5e9;
+  --color-secondary-light: #06b6d4;
+  --color-secondary-dark: #0369a1;
+  
+  --color-background-dark: #030712;
+  --color-background-light: #0f0f1e;
+  --color-surface: #1a1a2e;
+  
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #64748b;
+  
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+}
+
 @layer base {
   :root {
-    /* Primary Colors */
-    --primary: 7c3aed;
-    --primary-light: a78bfa;
-    --primary-dark: 5b21b6;
+    /* CSS Variables for use in custom styles */
+    --primary: #7c3aed;
+    --primary-light: #a78bfa;
+    --primary-dark: #5b21b6;
 
-    /* Secondary Colors */
-    --secondary: 0ea5e9;
-    --secondary-light: 06b6d4;
-    --secondary-dark: 0369a1;
+    --secondary: #0ea5e9;
+    --secondary-light: #06b6d4;
+    --secondary-dark: #0369a1;
 
-    /* Background & Surfaces */
-    --background-dark: 030712;
-    --background-light: 0f0f1e;
-    --surface: 1a1a2e;
+    --background-dark: #030712;
+    --background-light: #0f0f1e;
+    --surface: #1a1a2e;
 
-    /* Text & Contrast */
-    --text-primary: f8fafc;
-    --text-secondary: cbd5e1;
-    --text-muted: 64748b;
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #64748b;
 
-    /* Utility Colors */
-    --success: 10b981;
-    --warning: f59e0b;
-    --error: ef4444;
-    --info: 3b82f6;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
+    --info: #3b82f6;
 
-    /* Shadow colors */
     --shadow-sm: rgb(0 0 0 / 0.05);
     --shadow-md: rgb(0 0 0 / 0.1);
     --shadow-lg: rgb(0 0 0 / 0.15);
 
-    /* Glow colors */
     --glow-primary: rgb(124 58 237 / 0.3);
     --glow-secondary: rgb(14 165 233 / 0.6);
   }
