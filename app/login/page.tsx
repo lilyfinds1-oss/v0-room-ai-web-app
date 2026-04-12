@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
@@ -10,11 +10,19 @@ import { Card } from '@/components/ui/card'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { signIn } = useAuth()
+  const { signIn, user, loading: authLoading } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && user) {
+      console.log('[v0] User already logged in, redirecting to dashboard')
+      router.push('/dashboard')
+    }
+  }, [user, authLoading, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,15 +32,25 @@ export default function LoginPage() {
     try {
       console.log('[v0] Login attempt with email:', email)
       await signIn(email, password)
-      console.log('[v0] Login successful')
-      router.push('/dashboard')
+      console.log('[v0] Login successful, waiting for auth context to update...')
+      // Don't redirect here - let the useEffect above handle it when the context updates
     } catch (err) {
       console.log('[v0] Login error:', err)
       const errorMsg = err instanceof Error ? err.message : 'Login failed'
       setError(errorMsg)
-    } finally {
       setLoading(false)
     }
+  }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background-dark">
+        <div className="text-center space-y-4">
+          <div className="text-4xl font-bold gradient-text">RoomAI</div>
+          <p className="text-text-secondary">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
