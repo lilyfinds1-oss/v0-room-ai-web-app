@@ -23,17 +23,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Check active session
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
+      try {
+        console.log('[v0] Checking active session...')
+        const { data: { session }, error } = await supabase.auth.getSession()
+        console.log('[v0] getSession result - session:', session, 'error:', error)
+        setSession(session)
+        setUser(session?.user ?? null)
+        setLoading(false)
+      } catch (err) {
+        console.error('[v0] Error checking session:', err)
+        setLoading(false)
+      }
     }
 
     checkAuth()
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
+        console.log('[v0] onAuthStateChange fired - event:', event, 'session:', session)
         setSession(session)
         setUser(session?.user ?? null)
         setLoading(false)
@@ -49,11 +57,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signIn = async (email: string, password: string) => {
-    console.log('[v0] Auth context signIn called with email:', email)
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    console.log('[v0] Supabase signInWithPassword response - data:', data, 'error:', error)
-    if (error) throw error
-    return data
+    try {
+      console.log('[v0] Auth context signIn called with email:', email)
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      
+      if (error) {
+        console.error('[v0] Supabase signInWithPassword error:', error.message, error.status)
+        throw error
+      }
+      
+      console.log('[v0] Supabase signInWithPassword success - user:', data.user?.email, 'session:', data.session ? 'exists' : 'null')
+      return data
+    } catch (err) {
+      console.error('[v0] signIn exception:', err instanceof Error ? err.message : err)
+      throw err
+    }
   }
 
   const signOut = async () => {
