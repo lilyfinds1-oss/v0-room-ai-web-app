@@ -74,6 +74,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!authLoading && !user) {
+      console.log('[v0] Dashboard: No user found, redirecting to login')
       router.push('/login')
     }
   }, [user, authLoading, router])

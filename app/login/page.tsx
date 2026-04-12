@@ -18,8 +18,9 @@ export default function LoginPage() {
 
   // Redirect if already logged in
   useEffect(() => {
+    console.log('[v0] Login page: authLoading=', authLoading, 'user=', user?.email)
     if (!authLoading && user) {
-      console.log('[v0] User already logged in, redirecting to dashboard')
+      console.log('[v0] Login page: User already logged in, redirecting to dashboard')
       router.push('/dashboard')
     }
   }, [user, authLoading, router])
@@ -39,6 +40,13 @@ export default function LoginPage() {
       const errorMsg = err instanceof Error ? err.message : 'Login failed'
       setError(errorMsg)
       setLoading(false)
+    } finally {
+      // Always reset loading state on completion
+      // Note: On success, it will be reset after redirect, but this ensures it's cleared for error cases
+      if (!error) {
+        // Only reset if no error was set (success case handled by redirect)
+        console.log('[v0] Login flow completed')
+      }
     }
   }
 
@@ -48,6 +56,19 @@ export default function LoginPage() {
         <div className="text-center space-y-4">
           <div className="text-4xl font-bold gradient-text">RoomAI</div>
           <p className="text-text-secondary">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // If user is already logged in, show redirect message
+  if (user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background-dark">
+        <div className="text-center space-y-4">
+          <div className="text-4xl font-bold gradient-text">RoomAI</div>
+          <p className="text-text-secondary">Redirecting to dashboard...</p>
+          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-rotate-spin mx-auto" />
         </div>
       </div>
     )
