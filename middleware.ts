@@ -39,15 +39,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Redirect auth pages if already logged in
-  if ((request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup') && user) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
-  }
+  // ❌ REMOVE THIS - Let client handle login/signup redirects
+  // if ((request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup') && user) {
+  //   return NextResponse.redirect(new URL('/dashboard', request.url))
+  // }
 
   return response
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/admin/:path*', '/login', '/signup'],
+  matcher: ['/dashboard/:path*', '/admin/:path*'],  // Remove /login and /signup
 }
-
