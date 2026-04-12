@@ -28,12 +28,6 @@ export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false)
 
   useEffect(() => {
-    if (!loading && user) {
-      router.push('/dashboard')
-    }
-  }, [user, loading, router])
-
-  useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50)
     }
@@ -67,14 +61,14 @@ export default function LandingPage() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 group cursor-pointer">
+          <Link href="/" className="flex items-center gap-2 group cursor-pointer">
             <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center group-hover:glow-primary transition-all">
               <span className="text-white font-bold text-lg">R</span>
             </div>
             <span className="font-bold text-xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               RoomAI
             </span>
-          </div>
+          </Link>
           <div className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-text-secondary hover:text-primary transition-colors">
               Features
@@ -87,12 +81,33 @@ export default function LandingPage() {
             </a>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => router.push('/login')} size="sm">
-              Sign In
-            </Button>
-            <Button onClick={handleGetStarted} variant="primary" size="sm">
-              Get Started
-            </Button>
+            {loading ? (
+              <div className="w-8 h-8 rounded-full bg-primary/20 animate-pulse" />
+            ) : user ? (
+              <>
+                <Button variant="outline" onClick={() => router.push('/dashboard')} size="sm">
+                  Dashboard
+                </Button>
+                <button
+                  onClick={() => router.push('/settings')}
+                  className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center hover:glow-primary transition-all"
+                  title={user.email || 'User'}
+                >
+                  <span className="text-white font-bold text-sm">
+                    {user.email?.charAt(0).toUpperCase() || 'U'}
+                  </span>
+                </button>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" onClick={() => router.push('/login')} size="sm">
+                  Sign In
+                </Button>
+                <Button onClick={handleGetStarted} variant="primary" size="sm">
+                  Get Started
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </nav>
