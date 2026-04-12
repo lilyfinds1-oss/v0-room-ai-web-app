@@ -22,9 +22,12 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
+      console.log('[v0] Login attempt with email:', email)
       await signIn(email, password)
+      console.log('[v0] Login successful')
       router.push('/dashboard')
     } catch (err) {
+      console.log('[v0] Login error:', err)
       const errorMsg = err instanceof Error ? err.message : 'Login failed'
       setError(errorMsg)
     } finally {
