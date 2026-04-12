@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { Button } from '@/components/ui/button'
-import { AnimatedBackground } from '@/components/animated-background'
-import { FeatureCard } from '@/components/feature-card'
 import { PricingCard } from '@/components/pricing-card'
 import { StepTimeline } from '@/components/step-timeline'
 import { ScrollTrigger } from '@/components/scroll-trigger'
+import { FeatureCardsSection } from '@/components/feature-cards-section'
+import { InteractiveHero } from '@/components/interactive-hero'
+import { BeforeAfterSlider } from '@/components/before-after-slider'
 import Link from 'next/link'
 import {
   Sparkles,
@@ -57,8 +58,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background-dark text-text-primary overflow-hidden">
-      <AnimatedBackground />
-
       {/* Navigation */}
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -98,110 +97,32 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 pt-20 relative">
-        <ScrollTrigger animation="fade-in" threshold={0.3} className="max-w-4xl mx-auto text-center space-y-8 w-full">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface/50 border border-white/10 backdrop-blur-sm animate-slide-down">
-            <span className="w-2 h-2 bg-secondary rounded-full animate-pulse" />
-            <span className="text-sm text-text-secondary">AI-Powered Interior Design • Instant Results</span>
-          </div>
+      {/* Interactive Hero Section */}
+      <InteractiveHero />
 
-          {/* Main Heading */}
-          <h1 className="text-5xl md:text-7xl font-bold leading-tight">
-            Transform Your Room with
-            <span className="block mt-2 gradient-text">AI-Powered Design</span>
-          </h1>
-
-          {/* Subheading */}
-          <p className="text-lg text-text-secondary max-w-2xl mx-auto leading-relaxed">
-            Upload a photo of your room and get professionally designed interior variations with curated furniture recommendations. All powered by advanced AI and ready to shop.
-          </p>
-
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-            <Button size="lg" onClick={handleGetStarted} variant="primary">
-              Start Designing Free
-            </Button>
-            <Button size="lg" variant="outline">
-              Watch Demo
-            </Button>
-          </div>
-
-          <p className="text-sm text-text-muted">No credit card required. Free tier includes 1 design per week.</p>
-        </ScrollTrigger>
-
-        {/* Feature Preview Cards */}
-        <div className="w-full max-w-5xl mt-20">
-          <ScrollTrigger animation="scale-in" threshold={0.2} className="w-full">
-            <div className="grid md:grid-cols-3 gap-6">
-              {[
-                { number: '01', title: 'Upload Your Room', icon: <Upload className="w-8 h-8" /> },
-                { number: '02', title: 'AI Designs', icon: <Sparkles className="w-8 h-8" /> },
-                { number: '03', title: 'Shop Instantly', icon: <ShoppingCart className="w-8 h-8" /> },
-              ].map((feature, i) => (
-                <div key={i} className="group relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur" />
-                  <div className="relative p-6 rounded-xl border border-white/10 bg-surface/30 backdrop-blur-sm hover:border-primary/30 transition-all duration-300 space-y-4">
-                    <div className="text-primary text-4xl">{feature.icon}</div>
-                    <h3 className="text-lg font-semibold text-text-primary">{feature.title}</h3>
-                    <p className="text-sm text-text-secondary">Get professional design recommendations instantly</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </ScrollTrigger>
-        </div>
+      {/* Features Section - Replaced with 3D Flip Cards */}
+      <section id="features" className="py-20 px-4 md:px-8">
+        <FeatureCardsSection />
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-32 px-4 sm:px-6 lg:px-8 relative">
+      {/* Before/After Demo Section */}
+      <section className="py-20 px-4 md:px-8">
         <div className="max-w-6xl mx-auto">
-          <ScrollTrigger animation="slide-up" threshold={0.2} className="text-center space-y-4 mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold text-text-primary">Powerful Features</h2>
-            <p className="text-xl text-text-secondary max-w-2xl mx-auto">
-              Everything you need to redesign your space with AI
+          <ScrollTrigger className="text-center mb-16 animate-slide-up">
+            <h2 className="text-5xl font-bold text-text-primary mb-4">See the Difference</h2>
+            <p className="text-text-secondary text-xl max-w-2xl mx-auto">
+              Watch as our AI transforms your space with stunning design variations
             </p>
           </ScrollTrigger>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                title: 'AI Room Analysis',
-                description: 'Advanced computer vision understands your room layout, lighting, and existing furniture',
-                icon: <Zap className="w-6 h-6" />,
-              },
-              {
-                title: 'Smart Placement',
-                description: 'AI recommends optimal furniture placement based on room dimensions and your style',
-                icon: <Palette className="w-6 h-6" />,
-              },
-              {
-                title: 'Multiple Variations',
-                description: 'Generate multiple design concepts to explore different aesthetics and styles',
-                icon: <Wand2 className="w-6 h-6" />,
-              },
-              {
-                title: 'Real Products',
-                description: 'All recommended furniture items are real, shoppable products with direct links',
-                icon: <ShoppingCart className="w-6 h-6" />,
-              },
-              {
-                title: 'Photorealistic Output',
-                description: 'High-quality image compositing ensures stunning, lifelike design previews',
-                icon: <TrendingUp className="w-6 h-6" />,
-              },
-              {
-                title: 'Budget-Aware',
-                description: 'Get recommendations that perfectly match your budget and financial preferences',
-                icon: <Lock className="w-6 h-6" />,
-              },
-            ].map((feature, i) => (
-              <ScrollTrigger key={i} animation="slide-up" delay={i * 50} threshold={0.2}>
-                <FeatureCard {...feature} index={0} />
-              </ScrollTrigger>
-            ))}
-          </div>
+          <ScrollTrigger animation="scale-in" threshold={0.2}>
+            <BeforeAfterSlider
+              beforeImage="/images/before-room.jpg"
+              afterImage="/images/after-room.jpg"
+              beforeLabel="Your Room"
+              afterLabel="AI Design"
+            />
+          </ScrollTrigger>
         </div>
       </section>
 
