@@ -17,7 +17,7 @@ export async function estimateDepth(imageUrl: string): Promise<DepthMap> {
     console.log('[v0] Stage 4: Depth estimation with Depth-Anything')
 
     const output = (await replicate.run(
-      'adirik/depth-anything:4e5ff0e449b5e91b0e4a3517a6f78f1c0f5e6f7e8d9c0b1a2f3e4d5c6b7a8f9',
+      'adirik/depth-anything',
       {
         image: imageUrl,
       }

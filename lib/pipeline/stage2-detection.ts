@@ -27,7 +27,7 @@ export async function detectObjects(
     const furnitureText = existingFurniture.join('. ')
 
     const output = (await replicate.run(
-      'adirik/grounding-dino:b6c1372f32ab4061626059402c0432858cd20aee5ad457fa10d2cc79aa7baf5c',
+      'adirik/grounding-dino',
       {
         image: imageUrl,
         text_prompt: furnitureText,

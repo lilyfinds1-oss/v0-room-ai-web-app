@@ -21,7 +21,7 @@ export async function removeBackground(imageUrl: string, productId: string): Pro
 
     try {
       const output = (await replicate.run(
-        'lucataco/remove-bg:fb8af171cfa1616bbfb33057a4ab4c75b1f1dfe10cc3062992fb2d94f75cee7c',
+        'lucataco/remove-bg',
         {
           image: imageUrl,
         }

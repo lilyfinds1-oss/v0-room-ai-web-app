@@ -32,7 +32,7 @@ export async function upscaleComposite(
     console.log('[v0] Stage 9: Upscaling with Real-ESRGAN (scale:', scaleFactor + 'x)')
 
     const output = (await replicate.run(
-      'nightmareai/real-esrgan:42fed498e93b4d35bbc1a1f7d1e8b8f0f3e4f5e6d7c8b9a0f1e2d3c4b5a6f7e8',
+      'nightmareai/real-esrgan',
       {
         image: compositeUrl,
         scale: scaleFactor,

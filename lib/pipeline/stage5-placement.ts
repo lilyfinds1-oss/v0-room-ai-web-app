@@ -63,7 +63,7 @@ Return exactly this JSON structure (up to 5 items):
 }`
 
     const output = (await replicate.run(
-      'openai/gpt-4.1-nano:4e5ff0e449b5e91b0e4a3517a6f78f1c0f5e6f7e8d9c0b1a2f3e4d5c6b7a8f9',
+      'meta/llama-3.1-8b-instruct',
       {
         prompt: prompt,
         max_tokens: 2000,

@@ -50,7 +50,7 @@ Return exactly this JSON structure:
 }`
 
     const output = (await replicate.run(
-      'yorickvp/llava-13b:6bfc98a381504cac29ecc0bfe048db80314b1ad4c9b0e881d7b1d0360834b358',
+      'yorickvp/llava-13b',
       {
         image: dataUri,
         prompt: prompt,

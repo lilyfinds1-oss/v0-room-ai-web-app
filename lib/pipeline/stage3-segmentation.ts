@@ -26,7 +26,7 @@ export async function segmentObjects(
     for (const bbox of boundingBoxes) {
       try {
         const output = (await replicate.run(
-          'meta/sam-2:5575f5551d3b56e30ea3d5e3a8987d82bc4e2a88d7dc2b1d2f9c0f3e5g6h7i8j',
+          'meta/sam-2',
           {
             image: imageUrl,
             bounding_box: [bbox.x_min, bbox.y_min, bbox.x_max, bbox.y_max],
