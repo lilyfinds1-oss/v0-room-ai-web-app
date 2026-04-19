@@ -42,7 +42,7 @@ export async function POST(request: Request) {
 
     // Upload file to Vercel Blob
     const blob = await put(`roomai/${user.id}/${Date.now()}-${file.name}`, file, {
-      access: 'private',
+      access: 'public',
     })
 
     // Create upload record in Supabase
