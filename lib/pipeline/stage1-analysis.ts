@@ -4,6 +4,20 @@ const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 })
 
+interface RoomAnalysis {
+  room_type: string
+  style: string
+  palette: string[]
+  mood: string
+  lighting: string
+  floor_material?: string
+  wall_color?: string
+  existing_furniture?: string[]
+  missing_items?: string[]
+  style_notes?: string
+  cleaned_room_url?: string
+}
+
 export async function analyzeRoom(imageUrl: string, stylePreference = 'modern'): Promise<RoomAnalysis> {
   console.log('[v0] Stage 1: Virtual room clearing with interior-design')
 

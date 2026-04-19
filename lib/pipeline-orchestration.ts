@@ -4,15 +4,13 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { normalizeImage } from './pipeline/stage0-normalization'
 import { analyzeRoom } from './pipeline/stage1-analysis'
-import { detectObjects } from './pipeline/stage2-detection'
-import { segmentObjects } from './pipeline/stage3-segmentation'
 import { estimateDepth } from './pipeline/stage4-depth'
 import { planPlacement } from './pipeline/stage5-placement'
 import { fetchProducts } from './pipeline/stage6-products'
-import { removeBackground } from './pipeline/stage7-removal'
-import { compositeProducts } from './pipeline/stage8-compositing'
 import { compositeProducts3D } from './pipeline/stage8-3d-compositing'
 import { upscaleComposite } from './pipeline/stage9-upscaling'
+import { logPipelineStage } from './pipeline-utils'
+import type { PipelineInput } from './pipeline-schemas'
 
 export const inngest = new Inngest({ id: 'roomai' })
 const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN })
@@ -30,70 +28,40 @@ export interface PipelineInput {
 export const designPipeline = inngest.createFunction(
   { id: 'design-pipeline', retries: 3, triggers: [{ event: 'roomai/design.requested' }] },
   async ({ event, step }: { event: { data: PipelineInput }; step: any }) => {
-    const {
-      jobId,
-      userId,
-      imageUrl,
-      budget,
-      stylePreference,
-      variationCount = 1,
-      enableUpscaling = true,
-    } = event.data as PipelineInput
+    const { jobId, userId, imageUrl, budget, stylePreference, variationCount = 1, enableUpscaling = true } = event.data
 
     try {
-      // Stage 0: Normalize Image
-      const stage0 = await step.run('stage-0-normalization', async () => {
-        console.log('[v0] Pipeline: Starting Stage 0')
+      // === OPTIMIZED 5-STAGE PIPELINE ===
+
+      // Stage 0: Normalize
+      const stage0 = await step.run('stage-0', async () => {
         return await normalizeImage(imageUrl, jobId)
       })
 
-      await logPipelineStage(jobId, 0, 'Normalization', 'completed', stage0)
-
-      // Stage 1: Room Analysis with virtual clearing
-      const stage1 = await step.run('stage-1-analysis', async () => {
-        console.log('[v0] Pipeline: Starting Stage 1')
+      // Stage 1: Virtual Room Clearing (interior-design)
+      const stage1 = await step.run('stage-1-virtual-staging', async () => {
+        console.log('[v0] Stage 1: Virtual Room Clearing')
         return await analyzeRoom(stage0.normalizedUrl, stylePreference)
       })
 
-      await logPipelineStage(jobId, 1, 'Room Analysis', 'completed', stage1)
-
-      // Stage 2: Object Detection
-      const stage2 = await step.run('stage-2-detection', async () => {
-        console.log('[v0] Pipeline: Starting Stage 2')
-        return await detectObjects(stage0.normalizedUrl, stage1.existing_furniture)
+      // Stage 2: Floor Mapping (depth-anything)
+      const stage2 = await step.run('stage-2-floor-mapping', async () => {
+        console.log('[v0] Stage 2: Floor Mapping')
+        const cleanedRoom = (stage1 as any).cleaned_room_url || stage0.normalizedUrl
+        return await estimateDepth(cleanedRoom)
       })
 
-      await logPipelineStage(jobId, 2, 'Object Detection', 'completed', stage2)
-
-      // Stage 3: Segmentation
-      const stage3 = await step.run('stage-3-segmentation', async () => {
-        console.log('[v0] Pipeline: Starting Stage 3')
-        return await segmentObjects(stage0.normalizedUrl, stage2)
+      // Stage 3: Product Selection (Llama)
+      const stage3 = await step.run('stage-3-product-selection', async () => {
+        console.log('[v0] Stage 3: AI Product Selection')
+        return await planPlacement(stage1, [], budget, stylePreference, 0, variationCount)
       })
 
-      await logPipelineStage(jobId, 3, 'Segmentation', 'completed', stage3)
-
-      // Stage 4: Depth Estimation
-      const stage4 = await step.run('stage-4-depth', async () => {
-        console.log('[v0] Pipeline: Starting Stage 4')
-        return await estimateDepth(stage0.normalizedUrl)
-      })
-
-      await logPipelineStage(jobId, 4, 'Depth Estimation', 'completed', stage4)
-
-      // Stage 5: Placement Planning
-      const stage5 = await step.run('stage-5-placement', async () => {
-        console.log('[v0] Pipeline: Starting Stage 5')
-        return await planPlacement(stage1, stage2, budget, stylePreference, 0, variationCount)
-      })
-
-      await logPipelineStage(jobId, 5, 'Placement Planning', 'completed', stage5)
-
-      // Stage 6: Product Fetching
-      const stage6 = await step.run('stage-6-products', async () => {
-        console.log('[v0] Pipeline: Starting Stage 6')
+      // Stage 4: Product Fetch (pre-processed DB)
+      const stage4 = await step.run('stage-4-product-fetch', async () => {
+        console.log('[v0] Stage 4: Product Fetching from DB')
         const products = []
-        for (const variation of stage5) {
+        for (const variation of stage3) {
           for (const placement of variation.placements) {
             const prods = await fetchProducts(placement, budget, stylePreference)
             products.push(...prods)
@@ -102,54 +70,37 @@ export const designPipeline = inngest.createFunction(
         return products
       })
 
-      await logPipelineStage(jobId, 6, 'Product Fetching', 'completed', stage6)
-
-      // Stage 7: Background Removal
-      const stage7 = await step.run('stage-7-removal', async () => {
-        console.log('[v0] Pipeline: Starting Stage 7')
-        const processed = []
-        for (const product of stage6) {
-          const result = await removeBackground(product.image_url, product.product_id)
-          processed.push(result)
-        }
-        return processed
-      })
-
-      await logPipelineStage(jobId, 7, 'Background Removal', 'completed', stage7)
-
-// Stage 8: 3D Compositing + FLUX enhancement
-      const stage8Results = await step.run('stage-8-compositing', async () => {
-        console.log('[v0] Pipeline: Starting Stage 8 - 3D Compositing')
+      // Stage 5: Three.js Rendering + FLUX + Upscale
+      const results = await step.run('stage-5-final-render', async () => {
+        console.log('[v0] Stage 5: Three.js + FLUX + Upscale')
         
-        // Use cleaned room from stage 1
         const cleanedRoomUrl = (stage1 as any).cleaned_room_url || stage0.normalizedUrl
         const roomPalette = stage1.palette || []
-        
-        const results = []
+        const finalResults = []
+
         for (let i = 0; i < variationCount; i++) {
-          const variation = stage5[i]
+          const variation = stage3[i]
           
-          // Create layers with product dimensions from DB
           const layers = variation.placements.map((p: any, idx: number) => {
-            const product = stage7[idx % stage7.length]
+            const product = stage4[idx % stage4.length]
             return {
               productId: p.product_name || p.product_id || 'product',
-              imageUrl: product.transparent_url,
+              imageUrl: stage4[idx % stage4.length]?.transparent_url || stage4[idx % stage4.length]?.image_url,
               x: stage0.metadata.processed_width * (p.x || 0.5),
               y: stage0.metadata.processed_height * (p.y || 0.5),
-              width: product.dimensions?.width || 36,
-              height: product.dimensions?.height || 30,
+              width: product?.dimensions?.width || 36,
+              height: product?.dimensions?.height || 30,
               depth: p.z_depth || 'mid',
               category: p.category || 'furniture',
             }
           })
 
-          console.log('[v0] Stage 8: Compositing', layers.length, 'products with 3D perspective')
+          console.log('[v0] Stage 5a: 3D Rendering', layers.length, 'products')
 
-          // Use 3D canvas compositing
+          // 3D Canvas compositing
           const composite = await compositeProducts3D({
             roomImageUrl: cleanedRoomUrl,
-            depthMapUrl: stage4?.depth_map_url,
+            depthMapUrl: stage2?.depth_map_url,
             layers,
             roomWidth: stage0.metadata.processed_width,
             roomHeight: stage0.metadata.processed_height,
@@ -157,8 +108,9 @@ export const designPipeline = inngest.createFunction(
             roomPalette,
           })
 
-          // Apply FLUX.1 Fill for high-end rendering
-          console.log('[v0] Stage 8b: Enhancing with FLUX.1 Fill')
+          console.log('[v0] Stage 5b: FLUX.1 Fill')
+          
+          // FLUX enhancement
           const fluxOutput = await replicate.run(
             'black-forest-labs/flux-fill-pro',
             {
@@ -170,121 +122,28 @@ export const designPipeline = inngest.createFunction(
             }
           ) as string
 
-          const enhancedUrl = typeof fluxOutput === 'string' ? fluxOutput : fluxOutput[0]
-          results.push({ composite_url: enhancedUrl, width: composite.width, height: composite.height })
+          const fluxUrl = typeof fluxOutput === 'string' ? fluxOutput : fluxOutput[0]
+          
+          let finalUrl = fluxUrl
+          
+          // Upscale if enabled
+          if (enableUpscaling) {
+            console.log('[v0] Stage 5c: ESRGAN Upscale')
+            const upscaled = await upscaleComposite(fluxUrl, 2, `${jobId}-v${i + 1}`, true)
+            finalUrl = upscaled.url
+          }
+
+          finalResults.push({ composite_url: finalUrl, width: composite.width, height: composite.height })
         }
-        return results
+        return finalResults
       })
 
-      await logPipelineStage(jobId, 8, 'Compositing', 'completed', stage8Results)
+      await logPipelineStage(jobId, 5, 'Final Render', 'completed', results)
 
-      // Stage 9: Upscaling (for each composite)
-      const stage9Results = await step.run('stage-9-upscaling', async () => {
-        console.log('[v0] Pipeline: Starting Stage 9')
-        const results = []
-        for (let i = 0; i < stage8Results.length; i++) {
-          const upscaled = await upscaleComposite(
-            stage8Results[i].composite_url,
-            2,
-            `${jobId}-v${i + 1}`,
-            enableUpscaling
-          )
-          results.push(upscaled)
-        }
-        return results
-      })
+      return results.map((r: any) => r.composite_url)
 
-      await logPipelineStage(jobId, 9, 'Upscaling', 'completed', stage9Results)
-
-      // Update job status to completed
-      await updateJobStatus(jobId, 'completed', {
-        results: stage9Results,
-        design_concept: stage5[0]?.design_concept,
-        reasoning: stage5[0]?.reasoning,
-      })
-
-      console.log('[v0] Pipeline complete for job:', jobId)
-      return { success: true, results: stage9Results }
     } catch (error) {
       console.error('[v0] Pipeline error:', error)
-
-      // Log error stage
-      await logPipelineStage(
-        jobId,
-        -1,
-        'Pipeline',
-        'failed',
-        { error: error instanceof Error ? error.message : 'Unknown error' }
-      )
-
-      // Update job status to failed
-      await updateJobStatus(jobId, 'failed', {
-        error: error instanceof Error ? error.message : 'Pipeline failed',
-      })
-
       throw error
     }
-  }
-)
-
-async function logPipelineStage(
-  jobId: string,
-  stage: number,
-  stageName: string,
-  status: string,
-  data: any
-) {
-  try {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-        },
-      }
-    )
-
-    await supabase.from('pipeline_logs').insert({
-      job_id: jobId,
-      stage,
-      stage_name: stageName,
-      status,
-      output_data: data,
-      created_at: new Date().toISOString(),
-    })
-  } catch (error) {
-    console.warn('[v0] Failed to log pipeline stage:', error)
-  }
-}
-
-async function updateJobStatus(jobId: string, status: string, metadata: any) {
-  try {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-        },
-      }
-    )
-
-    await supabase
-      .from('jobs')
-      .update({
-        status,
-        metadata,
-        completed_at: status === 'completed' ? new Date().toISOString() : null,
-      })
-      .eq('id', jobId)
-  } catch (error) {
-    console.warn('[v0] Failed to update job status:', error)
-  }
-}
+  })
