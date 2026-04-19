@@ -82,23 +82,23 @@ export async function POST(request: Request) {
 
     // Trigger Inngest workflow
     await inngest.send({
-      name: 'roomai/process.room',
+      name: 'roomai/design.requested',
       data: {
         jobId: jobData.id,
         uploadId: uploadData.id,
         userId: user.id,
         imageUrl: blob.url,
-        roomType: roomType,
-        budgetRange: budgetRange,
-        stylePreference: stylePreference,
+        budget: parseInt(budgetRange) || 2500,
+        stylePreference: stylePreference || 'modern',
       },
     })
 
-    return NextResponse.json({
-      uploadId: uploadData.id,
-      jobId: jobData.id,
-      message: 'Upload started, processing will begin shortly',
-    })
+    // Redirect to pipeline trigger page with job info
+    const triggerUrl = `/api/pipeline/trigger?jobId=${jobData.id}&uploadId=${uploadData.id}`
+    
+    await fetch(triggerUrl, { method: 'POST' })
+    
+    return NextResponse.redirect(new URL(`/process/${jobData.id}`, request.url))
   } catch (error) {
     console.error('Upload error:', error)
     return NextResponse.json(
