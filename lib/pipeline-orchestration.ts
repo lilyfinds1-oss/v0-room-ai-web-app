@@ -1,4 +1,5 @@
 import { Inngest } from 'inngest'
+import Replicate from 'replicate'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { normalizeImage } from './pipeline/stage0-normalization'
@@ -13,6 +14,7 @@ import { compositeProducts } from './pipeline/stage8-compositing'
 import { upscaleComposite } from './pipeline/stage9-upscaling'
 
 export const inngest = new Inngest({ id: 'roomai' })
+const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN })
 
 export interface PipelineInput {
   jobId: string
@@ -114,7 +116,7 @@ export const designPipeline = inngest.createFunction(
 
       await logPipelineStage(jobId, 7, 'Background Removal', 'completed', stage7)
 
-      // Stage 8: Compositing (for each variation)
+// Stage 8: Compositing + FLUX enhancement
       const stage8Results = await step.run('stage-8-compositing', async () => {
         console.log('[v0] Pipeline: Starting Stage 8')
         const results = []
@@ -135,9 +137,24 @@ export const designPipeline = inngest.createFunction(
             layers,
             stage0.metadata.processed_width,
             stage0.metadata.processed_height,
-            `${jobId}-v${i + 1}`
+            `${jobId}-v${i + 1}`,
           )
-          results.push(composite)
+
+          // Apply FLUX.1 Fill for high-end rendering
+          console.log('[v0] Stage 8b: Enhancing with FLUX.1 Fill')
+          const fluxOutput = await replicate.run(
+            'black-forest-labs/flux-fill-pro',
+            {
+              input: {
+                image: composite.composite_url,
+                prompt: `A professionally designed ${stage1.style} room with high-end furniture, perfect lighting, catalog quality`,
+                strength: 0.3,
+              },
+            }
+          ) as string
+
+          const enhancedUrl = typeof fluxOutput === 'string' ? fluxOutput : fluxOutput[0]
+          results.push({ composite_url: enhancedUrl, width: composite.width, height: composite.height })
         }
         return results
       })
