@@ -11,6 +11,7 @@ import { planPlacement } from './pipeline/stage5-placement'
 import { fetchProducts } from './pipeline/stage6-products'
 import { removeBackground } from './pipeline/stage7-removal'
 import { compositeProducts } from './pipeline/stage8-compositing'
+import { compositeProducts3D } from './pipeline/stage8-3d-compositing'
 import { upscaleComposite } from './pipeline/stage9-upscaling'
 
 export const inngest = new Inngest({ id: 'roomai' })
@@ -116,29 +117,45 @@ export const designPipeline = inngest.createFunction(
 
       await logPipelineStage(jobId, 7, 'Background Removal', 'completed', stage7)
 
-// Stage 8: Compositing + FLUX enhancement
+// Stage 8: 3D Compositing + FLUX enhancement
       const stage8Results = await step.run('stage-8-compositing', async () => {
-        console.log('[v0] Pipeline: Starting Stage 8')
+        console.log('[v0] Pipeline: Starting Stage 8 - 3D Compositing')
+        
+        // Use cleaned room from stage 1
+        const cleanedRoomUrl = (stage1 as any).cleaned_room_url || stage0.normalizedUrl
+        const roomPalette = stage1.palette || []
+        
         const results = []
         for (let i = 0; i < variationCount; i++) {
           const variation = stage5[i]
-          const layers = variation.placements.map((p: any, idx: number) => ({
-            productId: p.product_name,
-            imageUrl: stage7[idx % stage7.length].transparent_url,
-            x: stage0.metadata.processed_width * (p.x || 0.5),
-            y: stage0.metadata.processed_height * (p.y || 0.5),
-            width: stage0.metadata.processed_width * (p.scale || 0.3),
-            height: stage0.metadata.processed_height * (p.scale || 0.3),
-            depth: p.z_depth || 'mid',
-          }))
+          
+          // Create layers with product dimensions from DB
+          const layers = variation.placements.map((p: any, idx: number) => {
+            const product = stage7[idx % stage7.length]
+            return {
+              productId: p.product_name || p.product_id || 'product',
+              imageUrl: product.transparent_url,
+              x: stage0.metadata.processed_width * (p.x || 0.5),
+              y: stage0.metadata.processed_height * (p.y || 0.5),
+              width: product.dimensions?.width || 36,
+              height: product.dimensions?.height || 30,
+              depth: p.z_depth || 'mid',
+              category: p.category || 'furniture',
+            }
+          })
 
-          const composite = await compositeProducts(
-            stage0.normalizedUrl,
+          console.log('[v0] Stage 8: Compositing', layers.length, 'products with 3D perspective')
+
+          // Use 3D canvas compositing
+          const composite = await compositeProducts3D({
+            roomImageUrl: cleanedRoomUrl,
+            depthMapUrl: stage4?.depth_map_url,
             layers,
-            stage0.metadata.processed_width,
-            stage0.metadata.processed_height,
-            `${jobId}-v${i + 1}`,
-          )
+            roomWidth: stage0.metadata.processed_width,
+            roomHeight: stage0.metadata.processed_height,
+            sessionId: `${jobId}-v${i + 1}`,
+            roomPalette,
+          })
 
           // Apply FLUX.1 Fill for high-end rendering
           console.log('[v0] Stage 8b: Enhancing with FLUX.1 Fill')
@@ -148,7 +165,7 @@ export const designPipeline = inngest.createFunction(
               input: {
                 image: composite.composite_url,
                 prompt: `A professionally designed ${stage1.style} room with high-end furniture, perfect lighting, catalog quality`,
-                strength: 0.3,
+                strength: 0.25,
               },
             }
           ) as string
