@@ -59,13 +59,14 @@ async function convertTo3D(imageUrl: string, productId: string): Promise<string 
 async function main() {
   console.log('[3D] Starting product 3D conversion...')
   
-  // Get products without 3D models
+  // Get only 20 products without 3D models (to save credits)
   const { data: products } = await supabase
     .from('products')
     .select('id, name')
-    .limit(20) // Process 20 at a time
+    .is('model_3d_url', null)  // Only products without GLB
+    .limit(20)
     
-  console.log(`[3D] Found ${products?.length} products`)
+  console.log(`[3D] Converting ${products?.length} products to 3D`)
   
   let converted = 0
   for (const product of products || []) {
@@ -87,11 +88,13 @@ async function main() {
     const glbUrl = await convertTo3D(images.image_url, product.id)
     
     if (glbUrl) {
-      // Save GLB URL to DB
+      // Save GLB URL to Supabase (permanent storage)
       await supabase
         .from('products')
         .update({ model_3d_url: glbUrl })
         .eq('id', product.id)
+      
+      console.log(`[3D] Saved to Supabase: ${glbUrl.slice(0, 50)}`)
       
       converted++
       console.log(`[3D] Converted ${converted}/${products?.length}`)
