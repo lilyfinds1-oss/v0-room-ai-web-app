@@ -94,7 +94,7 @@ export async function POST(request: Request) {
     })
 
     // Pipeline is already triggered by inngest.send above
-    return NextResponse.redirect(new URL(`/process/${jobData.id}`, request.url))
+    return NextResponse.redirect(new URL(`/dashboard?jobId=${jobData.id}`, request.url))
   } catch (error) {
     console.error('Upload error:', error)
     return NextResponse.json(
