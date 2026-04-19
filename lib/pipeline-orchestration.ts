@@ -85,7 +85,9 @@ export const designPipeline = inngest.createFunction(
             const product = stage4[idx % stage4.length]
             return {
               productId: p.product_name || p.product_id || 'product',
-              imageUrl: stage4[idx % stage4.length]?.transparent_url || stage4[idx % stage4.length]?.image_url,
+              // Use GLB if available, otherwise transparent PNG
+              imageUrl: product?.model_3d_url || product?.transparent_url || product?.image_url,
+              glbUrl: product?.model_3d_url,  // Three.js can use this for 3D rendering
               x: stage0.metadata.processed_width * (p.x || 0.5),
               y: stage0.metadata.processed_height * (p.y || 0.5),
               width: product?.dimensions?.width || 36,
