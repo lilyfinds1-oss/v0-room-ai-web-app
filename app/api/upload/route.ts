@@ -93,11 +93,7 @@ export async function POST(request: Request) {
       },
     })
 
-    // Redirect to pipeline trigger page with job info
-    const triggerUrl = `/api/pipeline/trigger?jobId=${jobData.id}&uploadId=${uploadData.id}`
-    
-    await fetch(triggerUrl, { method: 'POST' })
-    
+    // Pipeline is already triggered by inngest.send above
     return NextResponse.redirect(new URL(`/process/${jobData.id}`, request.url))
   } catch (error) {
     console.error('Upload error:', error)
