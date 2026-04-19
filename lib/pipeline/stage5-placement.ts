@@ -17,6 +17,11 @@ const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 })
 
+// Improved system prompt for structured product queries
+const SYSTEM_PROMPT = `You are an Interior Design Procurement Expert. 
+Your goal is to analyze a user's budget and style preference and output a structured JSON query for furniture from a database.
+You must distribute the budget logically: 60% for main furniture (bed/sofa), 20% for accent pieces, 20% for accessories.`
+
 export async function planPlacement(
   roomProfile: Record<string, any>,
   detectedObjects: Array<{ label: string; x_min: number; y_min: number; x_max: number; y_max: number }>,
@@ -28,7 +33,43 @@ export async function planPlacement(
   const maxRetries = 1
 
   try {
-    console.log('[v0] Stage 5: Placement planning with GPT-4.1-nano')
+    console.log('[v0] Stage 3: AI Product Selection with Llama-3.1-8b')
+
+    const prompt = `${SYSTEM_PROMPT}
+
+User Input:
+- Budget: $${userBudget}
+- Style: ${stylePreference}
+- Room Type: ${roomProfile.room_type}
+- Existing items: ${roomProfile.existing_furniture?.join(', ') || 'none'}
+
+Output JSON only. No explanation. Start with { and end with }:
+
+{
+  "design_strategy": {
+    "style_tag": "${stylePreference}",
+    "primary_color_palette": ${JSON.stringify(roomProfile.palette?.slice(0, 3) || ['neutral'])},
+    "total_budget": ${userBudget}
+  },
+  "product_queries": [
+    {
+      "category": "bed_frame|sofa|table|chair|lamp|cabinet",
+      "max_price": ${Math.round(userBudget * 0.6)},
+      "required_features": ["key feature 1", "key feature 2"],
+      "priority": "high|medium|low",
+      "position": { "x": 0.3-0.5, "y": 0.3-0.5 },
+      "depth": "far|mid|near"
+    }
+  ],
+  "design_concept": "1 sentence design idea",
+  "reasoning": "why this works with budget"
+}
+
+IMPORTANT: 
+- Output valid JSON only
+- Use normalized coordinates (0-1) for x, y
+- depth: far=back wall, mid=center, near=front
+- scale is calculated from product dimensions`
 
     const prompt = `You are an interior designer. Given a room profile and existing furniture, suggest furniture placements.
 
