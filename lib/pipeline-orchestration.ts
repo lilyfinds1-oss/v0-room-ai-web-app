@@ -46,10 +46,10 @@ export const designPipeline = inngest.createFunction(
 
       await logPipelineStage(jobId, 0, 'Normalization', 'completed', stage0)
 
-      // Stage 1: Room Analysis
+      // Stage 1: Room Analysis with virtual clearing
       const stage1 = await step.run('stage-1-analysis', async () => {
         console.log('[v0] Pipeline: Starting Stage 1')
-        return await analyzeRoom(stage0.normalizedUrl)
+        return await analyzeRoom(stage0.normalizedUrl, stylePreference)
       })
 
       await logPipelineStage(jobId, 1, 'Room Analysis', 'completed', stage1)
