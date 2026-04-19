@@ -25,9 +25,8 @@ export interface PipelineInput {
 }
 
 export const designPipeline = inngest.createFunction(
-  { id: 'design-pipeline', retryFn: async (attempt) => attempt < 3 },
-  { event: 'roomai/design.requested' },
-  async ({ event, step }) => {
+  { id: 'design-pipeline', retries: 3, triggers: [{ event: 'roomai/design.requested' }] },
+  async ({ event, step }: { event: { data: PipelineInput }; step: any }) => {
     const {
       jobId,
       userId,
